@@ -1,0 +1,60 @@
+// BE SURE TO INCLUDE THE CSS RESET FOUND IN THE DEMO PAGE'S CSS 
+
+.menu
+    list-style: none
+
+.menu ul
+    list-style: none
+    // Clear floats 
+    float: left
+    width: 100%
+    // Bring the nav above everything else--uncomment if needed.
+    position: relative
+    z-index: 5
+	
+
+.menu ul li
+    float: left
+    position: relative
+
+.menu ul a
+    padding-left:  10px
+    display: block
+
+.menu ul a: hover
+
+
+/////////////////////////
+// DROPDOWN
+
+.menu ul ul
+    list-style: none
+    position: absolute
+    // Hide off-screen when not needed (this is more accessible than display: none) 
+    left: -9999px 
+
+.menu ul ul li
+    // Introducing a padding between the li and the a give the illusion spaced items 
+    padding-top: 1px 
+    float: none
+
+.menu ul ul a
+    // Stop text wrapping and creating multi-line dropdown items 
+    white-space: nowrap 
+
+// Display the dropdown on hover 
+.menu ul li: hover ul
+    // Bring back on-screen when needed 
+    left: 0 
+
+
+//.menu ul li: hover a 
+
+// The persistent hover state does however create a global style for links
+// even before they're hovered. Here we undo these effects. 
+//.menu ul li: hover ul a 
+
+// Here we define the most explicit hover states
+// => what happens when you hover each individual link. 
+//.menu ul li: hover ul li a: hover 
+
