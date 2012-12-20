@@ -16,9 +16,19 @@
 # Data
 
 class Cell
-    constructor: (@state, @X, @Y, @R, @dom) ->
+    constructor: (@state, @X, @Y, @R_proto, @dom) ->
         @visual=@state
         do @apply_cssvisual
+
+        # Rule [event] management
+        if @R_proto.rule
+            @R = @R_proto.rule
+        else
+            @R = @R_proto
+
+        # Click event management
+        @dom.click => do @__onclick
+        @click = @R_proto.click
 
     str_state:->
         String @state
@@ -27,15 +37,17 @@ class Cell
 
     refresh_state:->
         @state = @visual
-    tick:->
-        do @refresh_state
-        do @react
-        do @apply_cssvisual
+    tick:(R=@R)->
+        @refresh_state()
+        @react R
+        @apply_cssvisual()
 
-    apply_rule: (R) ->
+    react: (R) ->
         @visual = R @state, @X, @Y, @
-    react:->
-        @apply_rule @R
+
+    __onclick:->
+        if @click
+            @tick @click
 
     apply_cssvisual:->
         @dom.attr 'class', 'cell state_' + @str_visual()
@@ -50,7 +62,7 @@ class CellAuto
             map [0...@w], (X) =>
                 dcell = $ '<div></div>'
                 drow.append dcell
-                new Cell dstate, X,Y, ((a...) => @R a...), dcell
+                new Cell dstate, X,Y, @R, dcell
 
         ($ 'body').append dom
     
@@ -70,3 +82,12 @@ class CellAuto
         if (@runner)
             do @stop
             do @start
+
+##########################
+# TEST
+
+a = null
+onReady ->
+    a = new CellAuto 30,30,
+        rule: (i,x,y)-> (i+1)%10
+        click: (i,x,y)-> (i+1)%10
