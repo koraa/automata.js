@@ -6,7 +6,8 @@ JS = ./src
 TMP  = ./tmp
 TARG = ./build
 
-JUICETARG = cupdev
+TTARG = $(shell uuidgen)
+JUICETARG = cells
 
 PAT_EXCLUDE = '_proto'
 
@@ -134,7 +135,7 @@ endif
 ##############################################
 # Targes
 
-all: deps mktarg resources closure css_juice jade php plainhtml
+all: clean deps mktarg resources juice css_juice jade php plainhtml
 
 resources:
 	rsync -ravH --exclude=$(PAT_EXCLUDE) "$(RES)"/* "$(TARG)" || echo "No resources to copy"
@@ -146,10 +147,10 @@ plainjs:
 	rsync -ravH --exclude=$(PAT_EXCLUDE) "$(JS)"/*.js "$(TMP)" || echo "No resources to copy"
 
 juice: plainjs coffee
-	$(call XALL,"$(TMP)",$(PAT_JS)) $(JUICER) "$(TMP)/$(JUICETARG).js"
+	$(call XALL,"$(TMP)",$(PAT_JS)) $(JUICER) "$(TARG)/$(JUICETARG).js"
 
 closure: juice
-	$(CLOSURE) "$(TARG)/$(JUICETARG).js" "$(TMP)/$(JUICETARG).js"
+	$(CLOSURE) "$(TARG)/$(JUICETARG).js" "$(TMP)/$(TTARG).js"
 
 stylus:
 	$(call XALL,"$(CSS)",$(PAT_STYLUS)) $(STYLUS) "$(TMP)" $(STYLUSPATH) 
