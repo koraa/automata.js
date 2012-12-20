@@ -17,37 +17,56 @@
 
 class Cell
     constructor: (@state, @X, @Y, @R, @dom) ->
-        do @apply_class
-        do @apply_pos
+        @visual=@state
+        do @apply_cssvisual
 
     str_state:->
         String @state
+    str_visual:->
+        String @visual
+
+    refresh_state:->
+        @state = @visual
+    tick:->
+        do @refresh_state
+        do @react
+        do @apply_cssvisual
 
     apply_rule: (R) ->
-        @state = R @state, [@X, @Y], @
+        @visual = R @state, @X, @Y, @
     react:->
-        apply_rule @R
+        @apply_rule @R
 
-    apply_class:->
-        @dom.attr 'class', 'cell ' + @str_state()
+    apply_cssvisual:->
+        @dom.attr 'class', 'cell state_' + @str_visual()
 
-    apply_pos:->
-        @dom.css "left", @X,
-                 "top",  @Y,
-                 "width",  "2px",
-                 "height", "2px"
+class CellAuto
+    constructor: (@w, @h, @R=(->), @clock=1000, dstate=0) ->
+        @dom = dom = $ '<div class="cell_auto"></div>'
 
-gen_grid = (w, h, R, dstate=0) ->
-    flog "CALLD", w,h,R,dstate
-    cauto = $ '<div class="cell_auto"></div>'
+        @cells = map [0...@h], (Y) =>
+            drow = $ '<div class="row"></div>'
+            dom.append drow
+            map [0...@w], (X) =>
+                dcell = $ '<div></div>'
+                drow.append dcell
+                new Cell dstate, X,Y, ((a...) => @R a...), dcell
 
-    map [0...h], (Y) ->
-        drow = $ '<div class="row"></div>'
-        map [0...w], (X) ->
-            dcell = $ '<div></div>'
-            new Cell dstate, X,Y, R, dcell
-
-            drow.append dcell
-        cauto.append drow
+        ($ 'body').append dom
     
-    ($ 'body').append cauto
+    update: (x=0,y=0,w,h=(len @cells)) ->
+        wQ = w?
+        map (@cells[y...(y+h)]), (row)->
+            w = (len row) unless wQ
+            map (row[x...(x+w)]), (cell)->
+                do cell.tick
+            
+    start: (@clock=@clock)->
+        @runner = setInterval (=>@update()), @clock
+    stop: ->
+        clearInterval(@runner) if @runner
+        @runner = 0
+    set_clock: (@clock) ->
+        if (@runner)
+            do @stop
+            do @start
