@@ -224,6 +224,23 @@ filter = (l, f, r=[]) ->
 len = (l) ->
     l.length
 
+#
+# Cyclic module:
+#
+#    -1 `amod x -> x-1
+#    +1 `amod x -> +1 ; x>=1
+#
+cyclmod = (i,d) ->  ((i%d)+d)%d
+
+#
+# Cyclic at,
+# always gives a valid element
+# See: cyclmod()
+#
+cyclat = (l, i, cycl=true) ->
+    i = cyclmod i, (len l) if cycl
+    l[i]
+
 ###
 Call the given function n times, while passing the index.
 
