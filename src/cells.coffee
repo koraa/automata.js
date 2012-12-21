@@ -16,7 +16,7 @@
 # Data
 
 class Cell
-    constructor: (@state, @X, @Y, @R_proto, @dom) ->
+    constructor: (@state, @X, @Y, @R_proto, @dom, @grid) ->
         @visual=@state
         do @apply_cssvisual
 
@@ -42,8 +42,11 @@ class Cell
         @react R
         @apply_cssvisual()
 
+    cnt:->
+        @grid.cnt
+
     react: (R) ->
-        @visual = R @state, @X, @Y, @
+        @visual = R @state, @X, @Y, @, @cnt()
 
     __onclick:->
         if @click
@@ -52,21 +55,40 @@ class Cell
     apply_cssvisual:->
         @dom.attr 'class', 'cell state_' + @str_visual()
 
+    relm: (x=0,y=0)->
+        _ = @grid.cells[@X+x]
+        _[@Y+y] if _
+    relms: (x,y)->
+        _ = (@relm x,y)
+        _.state if _
+
+    left: (l=1)->
+        @relms -l
+    right: (l=1)->
+        @relms l
+    up: (l=1)->
+        @relms 0, -l
+    down: (l=1)->
+        @relms 0, l
+
+
 class CellAuto
     constructor: (@w, @h, @R=(->), @clock=1000, dstate=0) ->
-        @dom = dom = $ '<div class="cell_auto"></div>'
+        @cnt = 0
 
+        @dom = dom = $ '<div class="cell_auto"></div>'
         @cells = map [0...@h], (Y) =>
             drow = $ '<div class="row"></div>'
             dom.append drow
             map [0...@w], (X) =>
                 dcell = $ '<div></div>'
                 drow.append dcell
-                new Cell dstate, X,Y, @R, dcell
-
+                new Cell dstate, X,Y, @R, dcell, @
         ($ 'body').append dom
     
     update: (x=0,y=0,w,h=(len @cells)) ->
+        @cnt++
+
         wQ = w?
         map (@cells[y...(y+h)]), (row)->
             w = (len row) unless wQ
@@ -89,5 +111,6 @@ class CellAuto
 a = null
 onReady ->
     a = new CellAuto 30,30,
-        rule: (i,x,y)-> (i+1)%10
-        click: (i,x,y)-> (i+1)%10
+        rule: (i,x,y,s,n)->
+            (x+n )%10
+    .start()
