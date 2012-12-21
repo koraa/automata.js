@@ -38,7 +38,6 @@ class Cell
     refresh_state:->
         @state = @visual
     tick:(R=@R)->
-        @refresh_state()
         @react R
         @apply_cssvisual()
 
@@ -55,21 +54,22 @@ class Cell
     apply_cssvisual:->
         @dom.attr 'class', 'cell state_' + @str_visual()
 
-    relm: (x=0,y=0)->
-        _ = @grid.cells[@X+x]
-        _[@Y+y] if _
-    relms: (x,y)->
-        _ = (@relm x,y)
+    relm: (x=0,y=0, cyclic=true)->
+        _ = cyclat @grid.cells, @Y+y, cyclic
+        if _
+            cyclat _, @X+x, cyclic
+    relms: (x,y, cyclic=true)->
+        _ = (@relm x,y,cyclic)
         _.state if _
 
-    left: (l=1)->
-        @relms -l
-    right: (l=1)->
-        @relms l
-    up: (l=1)->
-        @relms 0, -l
-    down: (l=1)->
-        @relms 0, l
+    left: (l=1, cyclic=true)->
+        @relms -l, 0, cyclic
+    right: (l=1, cyclic=true)->
+        @relms l, 0, cyclic
+    up: (l=1, cyclic=true)->
+        @relms 0, -l, cyclic
+    down: (l=1, cyclic=true)->
+        @relms 0, l, cyclic
 
 
 class CellAuto
@@ -86,15 +86,19 @@ class CellAuto
                 new Cell dstate, X,Y, @R, dcell, @
         ($ 'body').append dom
     
-    update: (x=0,y=0,w,h=(len @cells)) ->
-        @cnt++
-
+    each: (f, x=0,y=0,w,h=(len @cells)) ->
         wQ = w?
         map (@cells[y...(y+h)]), (row)->
             w = (len row) unless wQ
-            map (row[x...(x+w)]), (cell)->
-                do cell.tick
-            
+            map (row[x...(x+w)]), f
+    
+    update: (x=0,y=0,w,h=(len @cells)) ->
+        @cnt++
+        @each (cell) -> do cell.refresh_state
+        @each (cell) -> do cell.tick
+
+    step:->
+        do @update
     start: (@clock=@clock)->
         @runner = setInterval (=>@update()), @clock
     stop: ->
@@ -110,7 +114,9 @@ class CellAuto
 
 a = null
 onReady ->
-    a = new CellAuto 30,30,
+    a = new CellAuto 4,4
         rule: (i,x,y,s,n)->
-            (x+n )%10
-    .start()
+            s.left()
+        click: (i) ->
+            (i+1)%10
+    a.start(500)
