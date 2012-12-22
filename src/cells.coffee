@@ -20,6 +20,10 @@ class Cell
         @visual=@state
         do @apply_cssvisual
 
+        # Initial Env
+        if @R_proto.init
+            @tick @R_proto.init
+
         # Rule [event] management
         if @R_proto.rule
             @R = @R_proto.rule
@@ -114,9 +118,11 @@ class CellAuto
 
 a = null
 onReady ->
-    a = new CellAuto 4,4
+    a = new CellAuto 40, 40
+        init: (i,x,y) ->
+            (x+y)/8 %10
         rule: (i,x,y,s,n)->
-            s.left()
+            s.up 3
         click: (i) ->
             (i+1)%10
     a.start(500)
