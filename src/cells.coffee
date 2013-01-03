@@ -16,47 +16,61 @@
 # Data
 
 class Cell
-    constructor: (@state, @X, @Y, @R_proto, @dom, @grid) ->
-        @visual=@state
-        do @apply_cssvisual
-
-        # Initial Env
-        if @R_proto.init
-            @tick @R_proto.init
-
-        # Rule [event] management
-        if @R_proto.rule
-            @R = @R_proto.rule
-        else
-            @R = @R_proto
-
+    constructor: (@inistate, @X, @Y, @R_stt, @dom, @grid) ->
         # Click event management
         @dom.click => do @__onclick
-        @click = @R_proto.click
+
+    #####################################
+    # PROPS
 
     str_state:->
         String @state
     str_visual:->
         String @visual
 
-    refresh_state:->
-        @state = @visual
-    tick:(R=@R)->
-        @react R
-        @apply_cssvisual()
-
     cnt:->
         @grid.cnt
 
+    ######################################
+    # RULEZ
+    #
+    
+
     react: (R) ->
+        R = R.rule if R.rule
         @visual = R @state, @X, @Y, @, @cnt()
 
+    refresh_state:->
+        @state = @visual
+
+
+    tick:(R=@R)->
+        @react R
+        if (@state != @visual)
+            @apply_cssvisual()
+    ttick: (R)->
+        if R
+            @tick R
+
+
     __onclick:->
-        if @click
-            @tick @click
+        @ttick @R.click
+    reset:->
+        @visual = @state = @initstate
+        @ttick @R.init
+        do @apply_cssvisual
+
+    
+
+    ###############################
+    # Rendering
 
     apply_cssvisual:->
         @dom.attr 'class', 'cell state_' + @str_visual()
+    render: @apply_cssvisual
+
+    ###############################
+    # Relative gridacc
 
     relm: (x=0,y=0, cyclic=true)->
         _ = cyclat @grid.cells, @Y+y, cyclic
@@ -120,9 +134,9 @@ a = null
 onReady ->
     a = new CellAuto 40, 40
         init: (i,x,y) ->
-            (x+y)/8 %10
+            x/3 % 4
         rule: (i,x,y,s,n)->
-            s.up 3
+            s.right 3
         click: (i) ->
             (i+1)%10
     a.start(500)
