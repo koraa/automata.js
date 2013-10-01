@@ -27,12 +27,12 @@ class Cell
     @grid.cnt
 
   ######################################
-  # RULEZ
-  #
+  # RULES
   
 
   react: (R) ->
-    R = R.rule if R.rule
+    if R.rule
+      R = R.rule
     @visual = R @state, @X, @Y, @, @cnt()
 
   refresh_state:->
@@ -90,10 +90,10 @@ class CellAuto
     @cnt = 0
 
     @dom = dom = $ '<div class="cell_auto"></div>'
-    @cells = map [0...@h], (Y) =>
+    @cells = _.map [0...@h], (Y) =>
       drow = $ '<div class="row"></div>'
       dom.append drow
-      map [0...@w], (X) =>
+      _.map [0...@w], (X) =>
         dcell = $ '<div></div>'
         drow.append dcell
         new Cell dstate, X,Y, @R, dcell, @
@@ -101,9 +101,9 @@ class CellAuto
   
   each: (f, x=0,y=0,w,h=(len @cells)) ->
     wQ = w?
-    map (@cells[y...(y+h)]), (row)->
+    _.map (@cells[y...(y+h)]), (row)->
       w = (len row) unless wQ
-      map (row[x...(x+w)]), f
+      _.map (row[x...(x+w)]), f
   
   update: (x=0,y=0,w,h=(len @cells)) ->
     @cnt++
@@ -126,7 +126,7 @@ class CellAuto
 # TEST
 
 a = null
-onReady ->
+($ document).ready ->
   a = new CellAuto 40, 40,
     init: (i,x,y) ->
       x/3 % 4
