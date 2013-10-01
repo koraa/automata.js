@@ -1,3 +1,9 @@
 [submodule "lib/crafty"]
 	path = lib/crafty
 	url = git://github.com/mappleconfusers/Crafty.git 
+[submodule "plugins/wintersmith-browserify"]
+	path = plugins/wintersmith-browserify
+	url = https://github.com/mappleconfusers/wintersmith-browserify.git
+[submodule "plugins/wintersmith-jade"]
+	path = plugins/wintersmith-jade
+	url = https://github.com/smebberson/wintersmith-jade.git
