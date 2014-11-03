@@ -1,22 +1,13 @@
-#
-# This file contains a lib for rendering and computing
-# a cellular automate for a set of rules
-#
-# Author: Karolin Varner
-# Date:   12/18/12
-# File:   cells.js
-#
+# This is not really common 
+$ = require 'jquery'
 
-#######################################################
-# Data
+Automata = module.exports = {}
 
-class Cell
+class Automata.Cell
   constructor: (@inistate, @X, @Y, @R_stt, @dom, @grid) ->
-    # Click event management
     @dom.click => do @__onclick
 
-  #####################################
-  # PROPS
+  # PROP ##################
 
   str_state:->
     String @state
@@ -26,9 +17,7 @@ class Cell
   cnt:->
     @grid.cnt
 
-  ######################################
-  # RULES
-  
+  # RULES #################
 
   react: (R) ->
     if R.rule
@@ -47,7 +36,6 @@ class Cell
     if R
       @tick R
 
-
   __onclick:->
     @ttick @R.click
   reset:->
@@ -55,17 +43,13 @@ class Cell
     @ttick @R.init
     do @apply_cssvisual
 
-  
-
-  ###############################
-  # Rendering
+  # Rendering ################
 
   apply_cssvisual:->
     @dom.attr 'class', 'cell state_' + @str_visual()
   render: @apply_cssvisual
 
-  ###############################
-  # Relative gridacc
+  # Relative grid links ######
 
   relm: (x=0,y=0, cyclic=true)->
     _ = cyclat @grid.cells, @Y+y, cyclic
@@ -85,7 +69,7 @@ class Cell
     @relms 0, l, cyclic
 
 
-class CellAuto
+class Automata.Automat
   constructor: (@w, @h, @R=(->), @clock=1000, dstate=0) ->
     @cnt = 0
 
@@ -96,7 +80,7 @@ class CellAuto
       _.map [0...@w], (X) =>
         dcell = $ '<div></div>'
         drow.append dcell
-        new Cell dstate, X,Y, @R, dcell, @
+        new Automata.Cell dstate, X,Y, @R, dcell, @
     ($ 'body').append dom
   
   each: (f, x=0,y=0,w,h=(len @cells)) ->
@@ -110,28 +94,16 @@ class CellAuto
     @each (cell) -> do cell.refresh_state
     @each (cell) -> do cell.tick
 
-  step:->
-    do @update
   start: (@clock=@clock)->
-    @runner = setInterval (=>@update()), @clock
+    @runner = setInterval (=> do @update), @clock
+
   stop: ->
-    clearInterval(@runner) if @runner
+    if @runner
+      clearInterval(@runner)
     @runner = 0
+
   set_clock: (@clock) ->
     if (@runner)
       do @stop
       do @start
 
-##########################
-# TEST
-
-a = null
-($ document).ready ->
-  a = new CellAuto 40, 40,
-    init: (i,x,y) ->
-      x/3 % 4
-    rule: (i,x,y,s,n)->
-      s.right 3
-    click: (i) ->
-      (i+1)%10
-  a.start(500)
