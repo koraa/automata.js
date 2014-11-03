@@ -17,7 +17,9 @@
   },
   "devDependencies": {
     "coffee-script": ">=1.6.2",
-    "browserify":    "*"
+    "browserify":    "*",
+    "stylus":        "*",
+    "jade":          "*"
   },
   "engines": {
     "node": ">=0.10.0"

@@ -1,18 +1,15 @@
-# This is not really common 
-$ = require 'jquery'
+# This is not really common
+$ = window.$ = require 'jquery'
+_ = window._ = require 'lodash'
 
 Automata = module.exports = {}
 
 class Automata.Cell
-  constructor: (@inistate, @X, @Y, @R_stt, @dom, @grid) ->
+  constructor: (@inistate, @X, @Y, @R, @dom, @grid) ->
+    @reset()
     @dom.click => do @__onclick
 
   # PROP ##################
-
-  str_state:->
-    String @state
-  str_visual:->
-    String @visual
 
   cnt:->
     @grid.cnt
@@ -46,18 +43,34 @@ class Automata.Cell
   # Rendering ################
 
   apply_cssvisual:->
-    @dom.attr 'class', 'cell state_' + @str_visual()
+    @dom.attr 'class', "cell state_#{@visual}"
   render: @apply_cssvisual
 
   # Relative grid links ######
 
   relm: (x=0,y=0, cyclic=true)->
-    _ = cyclat @grid.cells, @Y+y, cyclic
-    if _
-      cyclat _, @X+x, cyclic
+    ysum = @Y + y
+    if cyclic
+      ysum = ysum % @grid.cells.length
+
+    row = @grid.cells[ysum]
+
+    if not row
+      console.log("ysum(#{@Y}, #{y}, #{@grid.cells.length}, #{cyclic}) = #{ysum} ==> #{row}")
+      return row
+
+    xsum = @X + x
+    if cyclic
+      xsum = xsum % row.length
+
+    cell = row[xsum]
+    if not cell
+      console.log("xsum(#{@X}, #{x}, #{row.length}, #{cyclic}) = #{xsum} ==> #{cell}")
+    cell
+
   relms: (x,y, cyclic=true)->
-    _ = (@relm x,y,cyclic)
-    _.state if _
+    cell = @relm x,y,cyclic
+    cell && cell.state
 
   left: (l=1, cyclic=true)->
     @relms -l, 0, cyclic
@@ -78,21 +91,21 @@ class Automata.Automat
       drow = $ '<div class="row"></div>'
       dom.append drow
       _.map [0...@w], (X) =>
-        dcell = $ '<div></div>'
+        dcell = $ '<div class="cell"></div>'
         drow.append dcell
         new Automata.Cell dstate, X,Y, @R, dcell, @
     ($ 'body').append dom
   
-  each: (f, x=0,y=0,w,h=(len @cells)) ->
+  each: (f, x=0,y=0,w,h=@cells.length) ->
     wQ = w?
     _.map (@cells[y...(y+h)]), (row)->
-      w = (len row) unless wQ
+      w = row.length unless wQ
       _.map (row[x...(x+w)]), f
   
-  update: (x=0,y=0,w,h=(len @cells)) ->
+  update: (x=0,y=0,w,h=@cells.length) ->
     @cnt++
-    @each (cell) -> do cell.refresh_state
-    @each (cell) -> do cell.tick
+    @each (cell) => cell.refresh_state()
+    @each (cell) => cell.tick()
 
   start: (@clock=@clock)->
     @runner = setInterval (=> do @update), @clock

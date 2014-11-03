@@ -1,14 +1,26 @@
 export PATH := $(PWD)/node_modules/.bin:$(PATH)
 
-.PHONY: build clean
+.PHONY: all lib example clean
 
-build: automata-standalone.js automata.js
+all: lib example
+
+F_EXAMPLE = example/index.html example/example.css example/example.js
+example: lib $(F_EXAMPLE)
+
+F_LIB = automata-standalone.js automata.js
+lib: $(F_LIB)
 
 automata-standalone.js: automata.js
-	browserify -e automata.js -s -o automata-standalone.js
+	browserify -e automata.js -s Automata -o automata-standalone.js
 
 %.js: %.coffee
 	coffee -bpc $< > $@
 
+%.css: %.styl
+	stylus $<
+
+%.html: %.jade
+	jade -P -p app/ < $< > $@
+
 clean:
-	rm automata-standalone.js automata.js
+	rm -f $(F_LIB) $(F_EXAMPLE)
