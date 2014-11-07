@@ -1,122 +1,51 @@
-# This is not really common
-$ = window.$ = require 'jquery'
-_ = window._ = require 'lodash'
+Lz = window._ = require 'lazy.js'
 
 Automata = module.exports = {}
 
+apply = (f) ->
+  (a...) ->
+    f a...
+
+Lz.Squence::deepzip = ->
+  f = Lz @first()
+  args = @rest().toArray()
+
+  f args...
+
+
 class Automata.Cell
-  constructor: (@inistate, @X, @Y, @R, @dom, @grid) ->
-    @reset()
-    @dom.click => do @__onclick
+  constructor: (@X, @Y, @grid, @state=0) ->
 
-  # PROP ##################
+  apply: (f) ->
+    @state = f @state, @
 
-  cnt:->
-    @grid.cnt
+  get: (x,y) ->
+    @grid.at x,y, cycl
 
-  # RULES #################
-
-  react: (R) ->
-    if R.rule
-      R = R.rule
-    @visual = R @state, @X, @Y, @, @cnt()
-
-  refresh_state:->
-    @state = @visual
-
-
-  tick:(R=@R)->
-    @react R
-    if (@state != @visual)
-      @apply_cssvisual()
-  ttick: (R)->
-    if R
-      @tick R
-
-  __onclick:->
-    @ttick @R.click
-  reset:->
-    @visual = @state = @initstate
-    @ttick @R.init
-    do @apply_cssvisual
-
-  # Rendering ################
-
-  apply_cssvisual:->
-    @dom.attr 'class', "cell state_#{@visual}"
-  render: @apply_cssvisual
-
-  # Relative grid links ######
-
-  relm: (x=0,y=0, cyclic=true)->
-    ysum = @Y + y
-    if cyclic
-      ysum = ysum % @grid.cells.length
-
-    row = @grid.cells[ysum]
-
-    if not row
-      console.log("ysum(#{@Y}, #{y}, #{@grid.cells.length}, #{cyclic}) = #{ysum} ==> #{row}")
-      return row
-
-    xsum = @X + x
-    if cyclic
-      xsum = xsum % row.length
-
-    cell = row[xsum]
-    if not cell
-      console.log("xsum(#{@X}, #{x}, #{row.length}, #{cyclic}) = #{xsum} ==> #{cell}")
-    cell
-
-  relms: (x,y, cyclic=true)->
-    cell = @relm x,y,cyclic
-    cell && cell.state
-
-  left: (l=1, cyclic=true)->
-    @relms -l, 0, cyclic
-  right: (l=1, cyclic=true)->
-    @relms l, 0, cyclic
-  up: (l=1, cyclic=true)->
-    @relms 0, -l, cyclic
-  down: (l=1, cyclic=true)->
-    @relms 0, l, cyclic
-
+  left:  (n=1) -> @get -n, 0
+  right: (n=1) -> @get  n, 0
+  up:    (n=1) -> @get 0, -n
+  down:  (n=1) -> @get 0,  n
 
 class Automata.Automat
-  constructor: (@w, @h, @R=(->), @clock=1000, dstate=0) ->
-    @cnt = 0
+  constructor: (@w, @h) ->
+    Lz [@w, @h]
+      .deepzip()
+      .map apply (x,y) ->
+        new Automata.Cell x, y, @
+      .toArray()
 
-    @dom = dom = $ '<div class="cell_auto"></div>'
-    @cells = _.map [0...@h], (Y) =>
-      drow = $ '<div class="row"></div>'
-      dom.append drow
-      _.map [0...@w], (X) =>
-        dcell = $ '<div class="cell"></div>'
-        drow.append dcell
-        new Automata.Cell dstate, X,Y, @R, dcell, @
-    ($ 'body').append dom
-  
-  each: (f, x=0,y=0,w,h=@cells.length) ->
-    wQ = w?
-    _.map (@cells[y...(y+h)]), (row)->
-      w = row.length unless wQ
-      _.map (row[x...(x+w)]), f
-  
-  update: (x=0,y=0,w,h=@cells.length) ->
-    @cnt++
-    @each (cell) => cell.refresh_state()
-    @each (cell) => cell.tick()
+  at: (x, y) ->
+    if cycl
+      x %= @w
+      y %= @h
+    @cells[x][y]
 
-  start: (@clock=@clock)->
-    @runner = setInterval (=> do @update), @clock
+  each: (f) ->
+    Lz @cells
+      .flatten()
+      .each (cel) -> f cel
 
-  stop: ->
-    if @runner
-      clearInterval(@runner)
-    @runner = 0
-
-  set_clock: (@clock) ->
-    if (@runner)
-      do @stop
-      do @start
-
+  apply: (f) ->
+    @each (cel) ->
+      cel.apply f
