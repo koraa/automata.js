@@ -3,42 +3,38 @@ $  = window.$  = require 'jquery'
 
 Automata = module.exports = {}
 
-apply = (f) ->
-  (a...) ->
+Automata.apply = apply = (f) ->
+  (a) ->
     f a...
 
-smod = (x, m) ->
+Automata.smod = smod = (x, m) ->
   if x < 0
     m - (-x) % m
   else
     x % m
 
-Lz.Sequence::deepzip = ->
-  first = Lz @first()
-  # *sigh*, zip will only work with arrays as arguments
-  args = @rest()
-      .map (x) ->
-        if x instanceof Lz.Sequence
-          x.toArray()
-        else
-          x
-      .toArray()
-
-  first.zip args...
+Automata.cross = cross = (aV,bV) ->
+  r = []
+  for a in aV
+    for b in bV
+      r.push [a, b]
+  r
 
 class Automata.Cell
   constructor: (@X, @Y, @grid, @state=0) ->
 
-  apply: (f) ->
-    @state = f @state, @
+  apply: (f) =>
+    @nu = f @state, @
+  blip: =>
+    @state = @nu
 
-  get: (x,y) ->
+  get: (x,y) =>
     @grid.at @X+x,@Y+y
 
-  left:  (n=1) -> @get -n, 0
-  right: (n=1) -> @get  n, 0
-  up:    (n=1) -> @get 0, -n
-  down:  (n=1) -> @get 0,  n
+  left:  (n=1) => @get -n, 0
+  right: (n=1) => @get  n, 0
+  up:    (n=1) => @get 0, -n
+  down:  (n=1) => @get 0,  n
 
 class Automata.Automat
   constructor: (@w, @h) ->
@@ -58,6 +54,8 @@ class Automata.Automat
   apply: (f) ->
     @each (cel) ->
       cel.apply f
+    @each (cel) ->
+      cel.blip()
 
 class Automata.PixelCanvas
   constructor: (@canvas, @W, @H) ->

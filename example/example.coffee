@@ -15,13 +15,7 @@ window.sleep  = (a...) -> setTimeout (tac a)...
 display = null
 automat = null
 renderer = null
-fps = 30
-
-rule = (s, cel) ->
-  cel.down().state
-
-initial = (s, cel) ->
-  rand 6
+fps = 2
 
 ## CONTROL #######################
 
@@ -37,9 +31,8 @@ center_display = ->
     top:  (wh - s)/2
     left: (ww - s)/2
 
-
 frame_loop = ->
-  automat.apply rule
+  automat.apply rules["Game Of Life"]
   renderer.render automat
 
   if fps > 0
@@ -52,7 +45,7 @@ frame_loop = ->
   center_display()
 
   automat = new Automata.Automat 50, 50
-  automat.apply initial
+  automat.apply rules["Clear Random Binary"]
 
   renderer = new Automata.CanvasRenderer display[0]
   frame_loop()
