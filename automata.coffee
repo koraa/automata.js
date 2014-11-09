@@ -15,7 +15,14 @@ smod = (x, m) ->
 
 Lz.Sequence::deepzip = ->
   first = Lz @first()
-  args = @rest().toArray()
+  # *sigh*, zip will only work with arrays as arguments
+  args = @rest()
+      .map (x) ->
+        if x instanceof Lz.Sequence
+          x.toArray()
+        else
+          x
+      .toArray()
 
   first.zip args...
 
