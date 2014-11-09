@@ -13,28 +13,20 @@ Automata.smod = smod = (x, m) ->
   else
     x % m
 
-Automata.cross = cross = (aV,bV) ->
-  r = []
-  for a in aV
-    for b in bV
-      r.push [a, b]
-  r
 
 class Automata.Cell
   constructor: (@X, @Y, @grid, @state=0) ->
 
-  apply: (f) =>
-    @nu = f @state, @
-  blip: =>
-    @state = @nu
+  apply: (f) ->
+    @state = f @state, @
 
-  get: (x,y) =>
+  get: (x,y) ->
     @grid.at @X+x,@Y+y
 
-  left:  (n=1) => @get -n, 0
-  right: (n=1) => @get  n, 0
-  up:    (n=1) => @get 0, -n
-  down:  (n=1) => @get 0,  n
+  left:  (n=1) -> @get -n, 0
+  right: (n=1) -> @get  n, 0
+  up:    (n=1) -> @get 0, -n
+  down:  (n=1) -> @get 0,  n
 
 class Automata.Automat
   constructor: (@w, @h) ->
@@ -54,8 +46,6 @@ class Automata.Automat
   apply: (f) ->
     @each (cel) ->
       cel.apply f
-    @each (cel) ->
-      cel.blip()
 
 class Automata.PixelCanvas
   constructor: (@canvas, @W, @H) ->
