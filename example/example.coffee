@@ -1,3 +1,5 @@
+{random, round} = Math
+
 ## UTILS #########################
 
 window.rand = (a, b=0) ->
@@ -15,24 +17,35 @@ window.sleep  = (a...) -> setTimeout (tac a)...
 display = null
 automat = null
 renderer = null
-fps = 2
+fps = 1
 
 ## CONTROL #######################
+
+rules =
+  "Game Of Life": (state, cell) ->
+    r = [-1..1]
+    live = _.sum(_.map (cartesian r, r), ([x,y]) -> cell.get(x,y).state) - state
+    switch live
+      when 2 then state # survival
+      when 3 then 1     # survival, reproduction
+      else        0     # overcrowded, underpopulation
+  "Clear Random Binary": -> round random()
 
 center_display = ->
   ww = window.innerWidth
   wh = window.innerHeight
-  s = Math.min(ww, wh) - 50
+  s = Math.min(ww, wh) - 10
 
-  display.css
-    position: 'absolute'
+  display.attr
     width: s
     height: s
+  display.css
+    position: 'absolute'
     top:  (wh - s)/2
     left: (ww - s)/2
 
 frame_loop = ->
-  automat.apply rules["Game Of Life"]
+  automat.update rules["Game Of Life"]
   renderer.render automat
 
   if fps > 0
@@ -44,8 +57,8 @@ frame_loop = ->
   display = $ ".display"
   center_display()
 
-  automat = new Automata.Automat 50, 50
-  automat.apply rules["Clear Random Binary"]
+  automat = new Automata.Automat 100, 100
+  automat.update rules["Clear Random Binary"]
 
   renderer = new Automata.CanvasRenderer display[0]
   frame_loop()

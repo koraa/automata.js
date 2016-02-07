@@ -1,5 +1,6 @@
 Lz = window.Lz = require 'lazy.js'
 $  = window.$  = require 'jquery'
+window._ = require 'lodash'
 
 Automata = module.exports = {}
 
@@ -13,12 +14,21 @@ Automata.smod = smod = (x, m) ->
   else
     x % m
 
+window.cartesian = (a, b) ->
+  r = []
+  for m in a
+    for k in b
+      r.push [m,k]
+  r
 
 class Automata.Cell
   constructor: (@X, @Y, @grid, @state=0) ->
 
   apply: (f) ->
-    @state = f @state, @
+    @nu = f @state, @
+
+  blip: =>
+    @state = @nu
 
   get: (x,y) ->
     @grid.at @X+x,@Y+y
@@ -33,7 +43,7 @@ class Automata.Automat
     @cells =
       for x in [0..@w]
         for y in [0..@h]
-          new Automata.Cell x, y, @ 
+          new Automata.Cell x, y, @
 
   at: (x, y) ->
     @cells[smod x, @w][smod y, @h]
@@ -41,25 +51,33 @@ class Automata.Automat
   each: (f) ->
     Lz @cells
       .flatten()
-      .each (cel) -> f cel
+      .each f
+
+  blip: => @each (cel) -> cel.blip()
 
   apply: (f) ->
-    @each (cel) ->
-      cel.apply f
+    @each (cel) -> cel.apply f
+
+  update: (f) =>
+    @apply f
+    @blip()
 
 class Automata.PixelCanvas
   constructor: (@canvas, @W, @H) ->
+    @g = @canvas.getContext "2d"
+  
+  clear: (color=0)->
+    @g.fillStyle = color
+    @g.fillRect 0, 0, @canvas.width, @canvas.height
 
   px: (x,y, color=0) ->
-    g = @canvas.getContext "2d"
-    g.fillStyle = color
-
+    @g.fillStyle = color
     pxW = @canvas.width / @W
     pxH = @canvas.height / @H
-    g.fillRect pxW*x, pxH*y, pxW, pxH
+    @g.fillRect pxW*x, pxH*y, pxW, pxH
 
 class Automata.CanvasRenderer extends Automata.PixelCanvas
-  stdColors = ["black", "brown", "red", "orange", "yellow", "white"]
+  stdColors = ["black", "green", "brown", "red", "orange", "yellow", "white"]
 
   constructor: (canvas, @colors=stdColors) ->
     super canvas
@@ -67,5 +85,6 @@ class Automata.CanvasRenderer extends Automata.PixelCanvas
   render: (automat) ->
     @W = automat.w
     @H = automat.h
+    @clear()
     automat.each (cell) =>
       @px cell.X, cell.Y, @colors[cell.state] || cell.state

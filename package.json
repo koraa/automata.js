@@ -12,14 +12,16 @@
     "url": "https://github.com/koraa/automata.js.git"
   },
   "dependencies": {
+    "cartesian": "^1.0.0",
     "jquery": "*",
-    "lazy.js": "*"
+    "lazy.js": "*",
+    "lodash": "^4.2.1"
   },
   "devDependencies": {
     "coffee-script": ">=1.6.2",
-    "browserify":    "*",
-    "stylus":        "*",
-    "jade":          "*"
+    "browserify": "*",
+    "stylus": "*",
+    "jade": "*"
   },
   "engines": {
     "node": ">=0.10.0"
